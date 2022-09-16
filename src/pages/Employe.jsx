@@ -1,8 +1,8 @@
-import React, { useState, memo } from 'react'
+import React, { useState, memo, useLayoutEffect, useEffect } from 'react'
 // import BootstrapTable from 'react-bootstrap-table-next'
 import {
     textFilter,
-    // selectFilter,
+    selectFilter
     // customFilter,
     // FILTER_TYPES
 } from 'react-bootstrap-table2-filter'
@@ -17,6 +17,9 @@ import ModalEdit from '../components/employe/ModalEdit'
 import ModalDetail from '../components/employe/ModalDetail'
 import ModalRemove from '../components/employe/ModalRemove'
 import MyTable from '../components/tabel/MyTable'
+import { useDispatch, useSelector } from 'react-redux'
+import { getEmployees, setSuccess } from '../store/slices/employeeSlice'
+import moment from 'moment'
 const classNameFilterForm =
     'tw-form-control tw-flex tw-py-1 tw-px-2 tw-text-xs tw-font-normal tw-text-gray-700 tw-bg-white tw-bg-clip-padding tw-border tw-border-solid tw-border-gray-300 tw-rounded tw-transition tw-ease-in-out tw-m-0  focus:tw-text-gray-700 focus:tw-bg-white focus:tw-border-sky-600 focus:tw-outline-none'
 
@@ -24,57 +27,48 @@ const Employe = () => {
     console.log('====================================')
     console.log('page employe')
     console.log('====================================')
-
-    const data = [
-        {
-            id: '8357ac5e-8b2e-4b5b-9bed-2469ad300072',
-            nama: 'Rahel Kittiman',
-            alamat: '21353 Loftsgordon Trail',
-            telephone: '157-110-8851',
-            email: 'rkittiman19@arstechnica.com'
-        },
-        {
-            id: '0c97dcc7-10cd-46ff-9b94-c16b9e2733b6',
-            nama: 'Dominica Kelk',
-            alamat: '55 Logan Drive',
-            telephone: '614-486-5171',
-            email: 'dkelk1a@w3.org'
-        },
-        {
-            id: 'b21596f3-f4da-42ff-840a-73ca5b29088f',
-            nama: 'Eada Wentworth',
-            alamat: '6014 Bayside Trail',
-            telephone: '376-586-7655',
-            email: 'ewentworth1b@adobe.com'
-        },
-        {
-            id: '62abb79e-5b89-46ac-9cee-f25595afc619',
-            nama: 'Stanislaus Gilli',
-            alamat: '40 Fremont Junction',
-            telephone: '194-800-6775',
-            email: 'sgilli1c@latimes.com'
-        },
-        {
-            id: '51f4cc0e-9ab1-4594-ae84-d88e42e0d4e5',
-            nama: 'Robinet Riche',
-            alamat: '700 Caliangt Hill',
-            telephone: '705-552-8096',
-            email: 'rriche1d@tamu.edu'
-        }
-    ]
+    const [token, setToken] = useState(sessionStorage.getItem('token'))
+    const dispatch = useDispatch()
+    const { data, limit, totalData, currentPage, isLoading } = useSelector(
+        state => state.employeeSlice.dataEmployee
+    )
 
     const [isHiden, setIsHiden] = useState({
-        alamat: false,
-        telephone: false,
-        email: false
+        departement: false,
+        email: true,
+        phone: true,
+        tmptlahir: true,
+        tgllahir: true,
+        id_card: true,
+        karyawan_status: true,
+        jenis_kelamin: true,
+        status: true,
+        alamat: true,
+        kota: true,
+        starjoin: true,
+        sisa_cuti: true,
     })
 
     const [valAksi, setValAksi] = useState({
         id: '',
-        nama: '',
+        NIP: '',
+        nickname: '',
+        nama_karyawan: '',
+        departement: '',
+        email: '',
+        phone: '',
+        tmptlahir: '',
+        tgllahir: '',
+        id_card: '',
+        karyawan_status: '',
+        jenis_kelamin: '',
+        status: '',
         alamat: '',
-        telephone: '',
-        email: ''
+        kota: '',
+        starjoin: '',
+        sisa_cuti: '',
+        emppen: [],
+        emppel: []
     })
 
     const defaultToggleColumn = (toggleVal, columnField) => {
@@ -84,16 +78,38 @@ const Employe = () => {
         }))
     }
 
+    const conditionHidden = column => {
+        return (
+            column.text !== '#' &&
+            column.text !== 'NIP' &&
+            column.text !== 'Employee Name' &&
+            column.text !== 'Aksi'
+        )
+    }
+
     const showModalHandler = (type, row = null) => {
         let elModal = null
         if (row !== null) {
+            console.log(row)
             setValAksi(valAksi => ({
                 ...valAksi,
                 id: row.id,
-                nama: row.nama,
+                NIP: row.NIP,
+                nickname: row.nickname,
+                nama_karyawan: row.nama_karyawan,
+                departement: row.departement,
+                email: row.email,
+                phone: row.phone,
+                tmptlahir: row.tmptlahir,
+                tgllahir: row.tgllahir,
+                id_card: row.id_card,
+                karyawan_status: row.karyawan_status,
+                jenis_kelamin: row.jenis_kelamin,
+                status: row.status,
                 alamat: row.alamat,
-                telephone: row.telephone,
-                email: row.email
+                kota: row.kota,
+                starjoin: row.starjoin,
+                sisa_cuti: row.sisa_cuti,
             }))
         }
 
@@ -115,7 +131,8 @@ const Employe = () => {
                 break
         }
         if (elModal !== null) {
-            const modal = new window.Modal(elModal)
+            dispatch(setSuccess(false))
+            const modal = window.Modal.getOrCreateInstance(elModal)
             modal.show()
         }
     }
@@ -124,55 +141,87 @@ const Employe = () => {
         {
             dataField: 'no',
             text: '#',
-            sort: false,
             headerStyle: () => ({ width: '50px' }),
             formatter: (cell, row, rowIndex, formatExtraData) => {
-                const currentPage = 1
+                const current = currentPage
                 const rowNumber = (currentPage - 1) * 10 + (rowIndex + 1)
                 return rowNumber
             }
         },
         {
-            dataField: 'nama',
-            text: 'Nama',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
+            dataField: 'NIP',
+            text: 'NIP',
             headerStyle: () => ({ width: '180px' })
         },
         {
-            hidden: isHiden.alamat,
-            dataField: 'alamat',
-            text: 'Alamat',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
+            hidden: isHiden.nickname,
+            dataField: 'nickname',
+            text: 'Nickname',
             headerStyle: () => ({ width: '180px' })
         },
         {
-            hidden: isHiden.telephone,
-            dataField: 'telephone',
-            text: 'Telephone',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
+            dataField: 'nama_karyawan',
+            text: 'Employee Name',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.departement,
+            dataField: 'departement',
+            text: 'Department',
             headerStyle: () => ({ width: '180px' })
         },
         {
             hidden: isHiden.email,
             dataField: 'email',
             text: 'Email',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.tmptlahir,
+            dataField: 'tmptlahir',
+            text: 'Birth Place',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.tgllahir,
+            dataField: 'tgllahir',
+            text: 'Birth Date',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.id_card,
+            dataField: 'id_card',
+            text: 'ID Card',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.karyawan_status,
+            dataField: 'karyawan_status',
+            text: 'Employee Status',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.jenis_kelamin,
+            dataField: 'jenis_kelamin',
+            text: 'Gender',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.status,
+            dataField: 'status',
+            text: 'Maritial Status',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.kota,
+            dataField: 'kota',
+            text: 'City',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.starjoin,
+            dataField: 'starjoin',
+            text: 'Start Joining',
             headerStyle: () => ({ width: '180px' })
         },
         {
@@ -215,21 +264,37 @@ const Employe = () => {
     //     showExpandColumn: false
     // }
 
+    const onPageChange = page => {
+        dispatch(getEmployees({ page: page, perPage: '10', token: token }))
+    }
+
     const options = {
-        // sizePerPage: 3,
         custom: true,
-        totalSize: data.length,
-        // firstPageText: 'First',
-        // prePageText: 'Back',
-        // nextPageText: 'Next',
-        // lastPageText: 'Last',
-        // nextPageTitle: 'First page',
-        // prePageTitle: 'Pre page',
-        // firstPageTitle: 'Next page',
-        // lastPageTitle: 'Last page',
-        pageButtonRenderer: PageButtonRenderer,
+        sizePerPage: limit,
+        page: currentPage,
+        totalSize: totalData,
+        pageButtonRenderer: pageProps => {
+            return (
+                <PageButtonRenderer
+                    key={pageProps.page}
+                    pageProps={pageProps}
+                    onPageChange={onPageChange}
+                />
+            )
+        },
         sizePerPageRenderer: SizePerPageRenderer
     }
+
+    useLayoutEffect(() => {
+        dispatch(getEmployees({ token: token }))
+    }, [])
+
+    useEffect(() => {
+        console.log(data)
+        return () => {
+            dispatch(setSuccess(false))
+        }
+    }, [])
 
     return (
         <>
@@ -240,13 +305,16 @@ const Employe = () => {
                     options={options}
                     defaultToggleColumn={defaultToggleColumn}
                     showModalHandler={showModalHandler}
+                    conditionHidden={conditionHidden}
                     expandRow={{}}
+                    loading={isLoading}
+                    remote={true}
                 />
             </div>
-            <ModalTambah />
-            <ModalEdit valAksi={valAksi} />
-            <ModalDetail />
-            <ModalRemove />
+            <ModalTambah token={token} />
+            <ModalEdit valAksi={valAksi} token={token} />
+            <ModalDetail valAksi={valAksi} token={token} />
+            <ModalRemove valId={valAksi.id} token={token} />
         </>
     )
 }

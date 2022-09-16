@@ -1,6 +1,20 @@
-import React from 'react'
+import React, { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { deleteEmployee, getEmployees } from '../../store/slices/employeeSlice'
 
-const ModalRemove = () => {
+const ModalRemove = ({ valId, token}) => {
+  const dispatch = useDispatch()
+  const { success, isLoading, type } = useSelector(state => state.employeeSlice.resEmployee)
+
+  useEffect(() => {
+    if (success) {
+      if (type === 'remove') {
+        const modal = window.Modal.getInstance(document.querySelector('#remove'))
+        modal.hide()
+        dispatch(getEmployees({ token: token }))
+      }
+    }
+  }, [success])
   return (
     <React.Fragment>
       <div
@@ -19,7 +33,7 @@ const ModalRemove = () => {
                 className='tw-text-xl tw-font-medium tw-leading-normal tw-text-gray-800'
                 id='exampleModalLabel'
               >
-                Hapus
+                Delete
               </h5>
               <button
                 type='button'
@@ -29,21 +43,30 @@ const ModalRemove = () => {
               ></button>
             </div>
             <div className='modal-body tw-relative tw-py-2 tw-px-6'>
-              <p>Apakah Anda yakin ingin menghapus item ini?</p>
+              <p>Are you sure you want to delete this item?</p>
             </div>
             <div className='modal-footer tw-flex tw-flex-shrink-0 tw-flex-wrap tw-items-center tw-justify-end tw-py-2 tw-px-6 tw-border-t tw-border-gray-200 tw-rounded-b-md'>
               <button
                 type='button'
-                className='tw-inline-block tw-px-6 tw-py-2 tw-bg-red-500 tw-text-white tw-font-bold tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
+                className='hover:tw-bg-red-600 tw-inline-block tw-px-6 tw-py-2 tw-bg-red-500 tw-text-white tw-font-bold tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
                 data-bs-dismiss='modal'
               >
                 Close
               </button>
               <button
+                onClick={() => {
+                  dispatch(deleteEmployee({id: valId, token: token}))
+                }}
                 type='button'
-                className='tw-inline-block tw-px-6 tw-py-2 tw-bg-red-500 tw-text-white tw-font-bold tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
+                className='hover:tw-bg-red-600 tw-flex tw-items-center tw-px-6 tw-py-2 tw-bg-red-500 tw-text-white tw-font-bold tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
               >
-                Understood
+                {
+                  isLoading &&
+                  <div className="spinner-border animate-spin tw-inline-block tw-w-4 tw-h-4 tw-border-2 tw-rounded-full tw-mr-2" role="status">
+                    <span className="tw-visually-hidden">Loading...</span>
+                  </div>
+                }
+                Ok
               </button>
             </div>
           </div>

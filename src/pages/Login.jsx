@@ -1,11 +1,54 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { MdRemoveRedEye, MdPerson, MdVpnKey } from 'react-icons/md'
+import { useFormik } from 'formik'
+import { useDispatch, useSelector } from 'react-redux'
+import { signIn } from '../store/slices/authSlice'
+import { useNavigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const [isShowPass, setIsShowPass] = useState(false);
+  const { username, role_name, acces_token, auth, isLoading } = useSelector(
+    state => state.authSlice.dataSignIn
+  )
+  const dispatch = useDispatch()
+  const formik = useFormik({
+    initialValues: {
+      username: '',
+      password: ''
+
+    },
+    onSubmit: (values) => {
+      dispatch(signIn(values))
+      // navigate("/", { replace: true })
+      // sessionStorage.setItem('auth', true)
+    }
+  })
+
+  const showPassword = () => {
+    setIsShowPass(!isShowPass)
+  }
+
+  useEffect(() => {
+    if (auth) {
+      navigate("/", {
+        replace: true,
+        state: { title: '', subtitle: '' }
+      })
+    }
+  }, [auth])
+
+  useEffect(() => {
+    console.log('====================================');
+    console.log(isShowPass);
+    console.log('====================================');
+  })
+
   return (
     <>
       <div className='tw-flex tw-justify-center tw-h-screen tw-items-center'>
-        <div className='tw-bg-white tw-p-6 tw-rounded tw-border'>
+        <div className='tw-bg-white tw-w-80 tw-p-6 tw-rounded-lg tw-border'>
           <div className='tw-bg-white tw-p-3 tw-w-full tw-flex tw-justify-center tw-mb-3'>
             <svg
               xmlns='http://www.w3.org/2000/svg'
@@ -34,32 +77,52 @@ const Login = () => {
               />
             </svg>
           </div>
-          <div className='tw-mb-3 xl:tw-w-96 tw-relative'>
-            <input
-              type='text'
-              className='tw-form-control tw-block tw-w-full tw-pl-11 tw-pr-3 tw-py-2 tw-text-base tw-font-normal tw-text-gray-700  tw-bg-white tw-bg-clip-padding tw-border tw-border-solid tw-border-gray-300 tw-rounded tw-transition tw-ease-in-out tw-m-0  focus:tw-text-gray-700 focus:tw-bg-white focus:tw-border-sky-600 focus:tw-outline-none'
-              id='exampleFormControlInput2'
-              placeholder='Username'
-            />
-            <div className='tw-absolute tw-left-3 tw-top-2 tw-p-1'>
-              <MdPerson size={18}/>
+          <div className='tw-mb-3 tw-form-group'>
+            <label
+              htmlFor='exampleInputEmail2'
+              className='tw-form-label tw-text-sm tw-font-medium tw-inline-block tw-mb-2 tw-text-gray-700'
+            >
+              Username
+            </label>
+            <div className='tw-relative'>
+              <input
+                onChange={formik.handleChange}
+                value={formik.values.username}
+                type='text'
+                className='tw-form-control tw-block tw-w-full tw-pl-11 tw-pr-3 tw-py-2 tw-text-base tw-font-normal tw-text-gray-700  tw-bg-white tw-bg-clip-padding tw-border tw-border-solid tw-border-gray-300 tw-rounded tw-transition tw-ease-in-out tw-m-0  focus:tw-text-gray-700 focus:tw-bg-white focus:tw-border-sky-600 focus:tw-outline-none'
+                id='username'
+                placeholder='Username'
+              />
+              <div className='tw-absolute tw-left-3 tw-top-2 tw-p-1'>
+                <MdPerson size={18} />
+              </div>
             </div>
           </div>
-          <div className='tw-mb-3 xl:tw-w-96 tw-relative '>
-            <input
-              type='password'
-              className='tw-form-control tw-block tw-w-full tw-pl-11 tw-pr-3 tw-py-2 tw-text-base tw-font-normal tw-text-gray-700  tw-bg-white tw-bg-clip-padding tw-border tw-border-solid tw-border-gray-300 tw-rounded tw-transition tw-ease-in-out tw-m-0  focus:tw-text-gray-700 focus:tw-bg-white focus:tw-border-sky-600 focus:tw-outline-none'
-              id='exampleFormControlInput2'
-              placeholder='Password'
-            />
-            <div className='tw-absolute tw-left-3 tw-top-2 tw-p-1'>
-              <MdVpnKey size={18}/>
-            </div>
-            <div className='tw-absolute tw-right-3 tw-top-2 hover:tw-bg-gray-200 tw-p-1 tw-rounded-full tw-transition tw-duration-300 tw-ease-in-out'>
-              <MdRemoveRedEye size={18}/>
+          <div className='tw-mb-3 tw-form-group'>
+            <label
+              htmlFor='exampleInputEmail2'
+              className='tw-form-label tw-text-sm tw-font-medium tw-inline-block tw-mb-2 tw-text-gray-700'
+            >
+              Password
+            </label>
+            <div className='tw-relative'>
+              <input
+                onChange={formik.handleChange}
+                value={formik.values.password}
+                type={`${isShowPass ? 'text' : 'password'}`}
+                className={`tw-form-control tw-block tw-w-full tw-pl-11 tw-pr-3 tw-py-2 tw-text-base tw-font-normal tw-text-gray-700  tw-bg-white tw-bg-clip-padding tw-border tw-border-solid tw-border-gray-300 tw-rounded tw-transition tw-ease-in-out tw-m-0  focus:tw-text-gray-700 focus:tw-bg-white focus:tw-border-sky-600 focus:tw-outline-none`}
+                id='password'
+                placeholder='Password'
+              />
+              <div className='tw-absolute tw-left-3 tw-top-2 tw-p-1'>
+                <MdVpnKey size={18} />
+              </div>
+              <button onClick={showPassword} className={`${isShowPass ? 'tw-opacity-50' : 'tw-opacity-100'} tw-absolute tw-right-3 tw-top-2 hover:tw-bg-gray-200 tw-p-1 tw-rounded-full tw-transition tw-duration-300 tw-ease-in-out`}>
+                <MdRemoveRedEye size={18} />
+              </button>
             </div>
           </div>
-          <div className='tw-mb-3 xl:tw-w-96'>
+          {/* <div className='tw-mb-3 xl:tw-w-96'>
             <select
               className='tw-form-select tw-appearance-none tw-block tw-w-full tw-px-3 tw-py-2 tw-text-base tw-font-normal tw-text-gray-700 tw-bg-white tw-bg-clip-padding tw-bg-no-repeat tw-border tw-border-solid tw-border-gray-300 tw-rounded tw-transition tw-ease-in-out tw-m-0 focus:tw-text-gray-700 focus:tw-bg-white focus:tw-border-sky-600 focus:tw-outline-none'
               aria-label='Default select example'
@@ -71,21 +134,35 @@ const Login = () => {
               <option value='2'>Two</option>
               <option value='3'>Three</option>
             </select>
-          </div>
-          <div className='tw-flex tw-justify-end tw-text-sm'>
+          </div> */}
+          {/* <div className='tw-flex tw-justify-end tw-text-sm'>
             <button type='button' className='tw-text-sky-500 hover:tw-underline'>
               Forget Password
             </button>
-          </div>
-          <div className='tw-mt-3 xl:tw-w-96'>
+          </div> */}
+          <div className='tw-mt-8 tw-mb-3'>
             <button
+              onClick={formik.handleSubmit}
               type='button'
-              className='tw-inline-block tw-w-full tw-px-3 tw-py-2 tw-bg-red-500 tw-text-white tw-font-bold tw-text-base tw-rounded tw-duration-300 tw-ease-in-out'
+              className='hover:tw-bg-red-600 tw-inline-block tw-w-full tw-px-3 tw-py-2 tw-bg-red-500 tw-text-white tw-font-bold tw-text-base tw-rounded tw-duration-300 tw-ease-in-out'
             >
+              {
+                isLoading &&
+                <div className="spinner-border animate-spin tw-inline-block tw-w-4 tw-h-4 tw-border-2 tw-rounded-full tw-mr-2" role="status">
+                  <span className="tw-visually-hidden">Loading...</span>
+                </div>
+              }
               Login
             </button>
           </div>
         </div>
+        <ToastContainer
+          autoClose={5000}
+          collapseDuration={300}
+          draggable={false}
+          hideProgressBar={true}
+          theme={'colored'}
+        />
       </div>
     </>
   )

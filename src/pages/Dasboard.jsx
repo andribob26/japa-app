@@ -2,7 +2,9 @@ import React from 'react'
 
 const Dasboard = () => {
   return (
-    <div>Dasboard</div>
+    <div>
+      <input type="date" />
+    </div>
   )
 }
 

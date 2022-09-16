@@ -1,4 +1,5 @@
-import React, { useState, memo } from 'react'
+import React, { useState, memo, useCallback, useEffect, useLayoutEffect } from 'react'
+import BootstrapTable from 'react-bootstrap-table-next/dist/react-bootstrap-table-next'
 import {
     textFilter,
     selectFilter,
@@ -16,6 +17,9 @@ import ModalEdit from '../components/workOrderRelease/ModalEdit'
 import ModalDetail from '../components/workOrderRelease/ModalDetail'
 import ModalRemove from '../components/workOrderRelease/ModalRemove'
 import MyTable from '../components/tabel/MyTable'
+import { useDispatch, useSelector } from 'react-redux'
+import { setValueAksi, getWorkOrderRelease, setSuccess } from '../store/slices/workOrderReleaseSlice'
+import moment from 'moment'
 const classNameFilterForm =
     'tw-form-control tw-flex tw-py-1 tw-px-2 tw-text-xs tw-font-normal tw-text-gray-700 tw-bg-white tw-bg-clip-padding tw-border tw-border-solid tw-border-gray-300 tw-rounded tw-transition tw-ease-in-out tw-m-0  focus:tw-text-gray-700 focus:tw-bg-white focus:tw-border-blue-600 focus:tw-outline-none'
 
@@ -23,68 +27,28 @@ const WorkOrderRelease = () => {
     console.log('====================================')
     console.log('page workOrderRelease')
     console.log('====================================')
+    const [val, setVal] = useState({
+        createID: ''
+    })
 
-    const data = [
-        {
-            id: 'e8f796c3-0f1a-4fd0-9a85-1baa3a10e8ee',
-            nama: 'Schmitt, Johnston and Kris',
-            alamat: '0129 Monument Terrace',
-            jenis: 'Sitework & Site Utilities',
-            pph: '$3.13',
-            ppn: '$3.87',
-            npwp: '5602214053275481',
-            created_at: '6/7/2022'
-        },
-        {
-            id: '38278e61-67ef-4e3e-b89c-0a535dfa014c',
-            nama: 'Schumm, Stroman and Bartell',
-            alamat: '4 Elmside Road',
-            jenis: 'Curb & Gutter',
-            pph: '$3.44',
-            ppn: '$1.79',
-            npwp: '3587808347630437',
-            created_at: '6/2/2022'
-        },
-        {
-            id: '74eb5623-aa88-4ca4-9720-46916d867bfa',
-            nama: 'Braun-Stehr',
-            alamat: '6 Independence Parkway',
-            jenis: 'Structural & Misc Steel Erection',
-            pph: '$0.94',
-            ppn: '$0.84',
-            npwp: '3563913262376376',
-            created_at: '3/18/2022'
-        },
-        {
-            id: 'e3aeee1e-937d-43e7-8978-6dad88e9c81b',
-            nama: 'Wehner, Padberg and Keeling',
-            alamat: '3499 Scoville Plaza',
-            jenis: 'Plumbing & Medical Gas',
-            pph: '$7.00',
-            ppn: '$5.87',
-            npwp: '5100139754155632',
-            created_at: '7/31/2022'
-        }
-    ]
+    const { data, limit, totalData, currentPage, isLoading } = useSelector(
+        state => state.workOrderReleaseSlice.dataWorkOrderRelease
+    )
+
+    const [token, setToken] = useState(sessionStorage.getItem('token'))
+    const dispatch = useDispatch()
+    const valueAksi = useSelector(state => state.workOrderReleaseSlice.valueAksi)
 
     const [isHiden, setIsHiden] = useState({
-        alamat: false,
-        jenis: false,
-        pph: true,
-        ppn: true,
-        npwp: true,
-        created_at: false
+        job: false,
+        nama_cus: false,
+        address: true,
     })
 
     const [valAksi, setValAksi] = useState({
-        id: '',
-        nama: '',
-        alamat: '',
-        jenis: '',
-        pph: '',
-        ppn: '',
-        npwp: '',
-        created_at: ''
+        job: '',
+        nama_cus: '',
+        address: ''
     })
 
     const defaultToggleColumn = (toggleVal, columnField) => {
@@ -94,49 +58,56 @@ const WorkOrderRelease = () => {
         }))
     }
 
-    const showModalHandler = (type, row = null) => {
-        console.log('====================================')
-        console.log(type)
-        console.log('====================================')
-        let elModal = null
-        if (row !== null) {
-            setValAksi(valAksi => ({
-                ...valAksi,
-                id: row.id,
-                nama: row.nama,
-                alamat: row.alamat,
-                jenis: row.jenis,
-                pph: row.pph,
-                ppn: row.ppn,
-                npwp: row.npwp,
-                created_at: row.created_at
-            }))
-        }
-
-        switch (type) {
-            case 'tambah':
-                elModal = document.querySelector(`#${type}`)
-                break
-            case 'detail':
-                elModal = document.querySelector(`#${type}`)
-                break
-            case 'edit':
-                elModal = document.querySelector(`#${type}`)
-                break
-            case 'remove':
-                elModal = document.querySelector(`#${type}`)
-                break
-
-            default:
-                break
-        }
-        if (elModal !== null) {
-            const modal = new window.Modal(elModal)
-            modal.show()
-        }
+    const conditionHidden = column => {
+        return (
+            column.text !== '#' &&
+            column.text !== 'Job no' &&
+            column.text !== 'Customer' &&
+            column.text !== 'Aksi'
+        )
     }
 
-    const selectOptions = [{ value: 'Electrical', label: 'Electrical' }]
+    const showModalHandler = useCallback(
+        (type, row = null) => {
+            let elModal = null
+            if (row !== null) {
+                setValAksi(valAksi => ({
+                    ...valAksi,
+                    job: row.job,
+                    nama_cus: row.nama_cus,
+                    address: row.address
+                }))
+            }
+
+            switch (type) {
+                case 'tambah':
+                    elModal = document.querySelector(`#${type}`)
+                    break
+                case 'detail':
+                    elModal = document.querySelector(`#${type}`)
+                    break
+                case 'edit':
+                    elModal = document.querySelector(`#${type}`)
+                    break
+                case 'remove':
+                    elModal = document.querySelector(`#${type}`)
+                    break
+
+                default:
+                    break
+            }
+            if (elModal !== null) {
+                const nowDate = new Date()
+                setVal(val => ({
+                    ...val,
+                    createID: moment(nowDate).format('YY.HHmmss')
+                }))
+                const modal = window.Modal.getOrCreateInstance(elModal)
+                modal.show()
+            }
+        },
+        [valAksi]
+    )
 
     const columns = [
         {
@@ -151,98 +122,24 @@ const WorkOrderRelease = () => {
             }
         },
         {
-            dataField: 'nama',
-            text: 'Nama',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
+            dataField: 'job',
+            text: 'Job no',
             headerStyle: () => ({ width: '180px' })
         },
         {
-            hidden: isHiden.alamat,
-            dataField: 'alamat',
-            text: 'Alamat',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
+            dataField: 'nama_cus',
+            text: 'Customer',
             headerStyle: () => ({ width: '180px' })
         },
         {
-            hidden: isHiden.jenis,
-            dataField: 'jenis',
-            text: 'Jenis',
-            sort: true,
-            filter: selectFilter({
-                placeholder: 'Pilih',
-                options: selectOptions,
-                className: classNameFilterForm
-            }),
+            hidden: isHiden.address,
+            dataField: 'address',
+            text: 'Address',
             headerStyle: () => ({ width: '180px' })
-        },
-        {
-            hidden: isHiden.pph,
-            dataField: 'pph',
-            text: 'PPh',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
-            headerStyle: () => ({ width: '100px' })
-        },
-        {
-            hidden: isHiden.ppn,
-            dataField: 'ppn',
-            text: 'PPN',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
-            headerStyle: () => ({ width: '100px' })
-        },
-        {
-            hidden: isHiden.npwp,
-            dataField: 'npwp',
-            text: 'NPWP',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
-            headerStyle: () => ({ width: '180px' })
-        },
-        {
-            hidden: isHiden.created_at,
-            dataField: 'created_at',
-            text: 'Tanggal',
-            sort: true,
-            filter: customFilter({
-                type: FILTER_TYPES.TEXT
-            }),
-            filterRenderer: (onFilter, column) => {
-                const handleOnChange = date => {
-                    onFilter(date)
-                }
-                return (
-                    <div className=''>
-                        <MyDatePicker
-                            formClassName={`form-control tw-w-full tw-flex tw-py-1 tw-px-2 tw-text-xs tw-font-normal tw-text-gray-700 tw-bg-white tw-bg-clip-padding tw-border tw-border-solid tw-border-gray-300 tw-rounded tw-transition tw-ease-in-out tw-m-0  focus:tw-text-gray-700 focus:tw-bg-white focus:tw-border-blue-600 focus:tw-outline-none`}
-                            handleOnChange={handleOnChange}
-                            format={`M/DD/YYYY`}
-                        />
-                    </div>
-                )
-            },
-            headerStyle: () => ({ width: '150px' })
         },
         {
             dataField: 'aksi',
-            text: 'Aksi',
+            text: 'Action',
             headerStyle: () => ({ width: '100px' }),
             formatter: (cell, row) => {
                 return <AksiFormatter row={row} showModalHandler={showModalHandler} />
@@ -250,71 +147,104 @@ const WorkOrderRelease = () => {
         }
     ]
 
-    // const expandRow = {
-    //     onlyOneExpanding: true,
-    //     className: 'tw-bg-gray-200',
-    //     renderer: row => {
-    //         return (
-    //             <BootstrapTable
-    //                 keyField='id'
-    //                 classes='m-0'
-    //                 data={[
-    //                     {
-    //                         nama: 'andri',
-    //                         telp: '080087996'
-    //                     }
-    //                 ]}
-    //                 columns={[
-    //                     {
-    //                         dataField: 'nama',
-    //                         text: 'Nama'
-    //                     },
-    //                     {
-    //                         dataField: 'telp',
-    //                         text: 'Telephone'
-    //                     }
-    //                 ]}
-    //             />
-    //         )
-    //     },
-    //     showExpandColumn: false
-    // }
+    const expandRow = {
+        className: 'tw-bg-gray-200',
+        renderer: row => (
+            <div className='tw-flex tw-gap-3'>
+                <button
+                    type='button'
+                    className='hover:tw-bg-red-600 tw-inline-block tw-px-3 tw-py-1 tw-bg-red-500 tw-text-white tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
+                    data-bs-dismiss='modal'
+                >
+                    Smry
+                </button>
+                <button
+                    type='button'
+                    className='hover:tw-bg-red-600 tw-inline-block tw-px-3 tw-py-1 tw-bg-red-500 tw-text-white tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
+                    data-bs-dismiss='modal'
+                >
+                    T.Sch
+                </button>
+                <button
+                    type='button'
+                    className='hover:tw-bg-red-600 tw-inline-block tw-px-3 tw-py-1 tw-bg-red-500 tw-text-white tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
+                    data-bs-dismiss='modal'
+                >
+                    Draw
+                </button>
+                <button
+                    type='button'
+                    className='hover:tw-bg-red-600 tw-inline-block tw-px-3 tw-py-1 tw-bg-red-500 tw-text-white tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
+                    data-bs-dismiss='modal'
+                >
+                    Disp
+                </button>
+                <button
+                    type='button'
+                    className='hover:tw-bg-red-600 tw-inline-block tw-px-3 tw-py-1 tw-bg-red-500 tw-text-white tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
+                    data-bs-dismiss='modal'
+                >
+                    Cost
+                </button>
+                <button
+                    type='button'
+                    className='hover:tw-bg-red-600 tw-inline-block tw-px-3 tw-py-1 tw-bg-red-500 tw-text-white tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
+                    data-bs-dismiss='modal'
+                >
+                    Man Hour
+                </button>
+            </div>
+        )
+    }
+
+    const onPageChange = page => { }
 
     const options = {
         // sizePerPage: 3,
         custom: true,
         totalSize: data.length,
-        // firstPageText: 'First',
-        // prePageText: 'Back',
-        // nextPageText: 'Next',
-        // lastPageText: 'Last',
-        // nextPageTitle: 'First page',
-        // prePageTitle: 'Pre page',
-        // firstPageTitle: 'Next page',
-        // lastPageTitle: 'Last page',
-        pageButtonRenderer: PageButtonRenderer,
+        pageButtonRenderer: pageProps => {
+            return (
+                <PageButtonRenderer
+                    key={pageProps.page}
+                    pageProps={pageProps}
+                    onPageChange={onPageChange}
+                />
+            )
+        },
         sizePerPageRenderer: SizePerPageRenderer
     }
+
+    useLayoutEffect(() => {
+        dispatch(getWorkOrderRelease({ token: 'token' }))
+    }, [])
+
+    useEffect(() => {
+        return () => {
+            dispatch(setSuccess(false))
+        }
+    }, [])
 
     return (
         <>
             <div className='tw-bg-white tw-p-3 tw-rounded-lg'>
                 <MyTable
+                    remote={true}
                     data={data}
                     columns={columns}
                     options={options}
                     defaultToggleColumn={defaultToggleColumn}
                     showModalHandler={showModalHandler}
+                    conditionHidden={conditionHidden}
                     expandRow={{}}
                 />
             </div>
-            <ModalTambah />
+            <ModalTambah val={val} token={token} />
             <ModalEdit valAksi={valAksi} />
-            <ModalDetail />
+            <ModalDetail valAksi={valAksi} />
             <ModalRemove />
         </>
     )
 }
-
 
 export default memo(WorkOrderRelease)

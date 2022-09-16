@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, forwardRef } from 'react'
+import React, { useState, useCallback, useEffect, forwardRef, useMemo, memo } from 'react'
 import {
   MdKeyboardArrowLeft,
   MdKeyboardArrowRight,
@@ -13,11 +13,11 @@ import 'react-datepicker/dist/react-datepicker.css'
 import id from 'date-fns/locale/id'
 registerLocale('id', id)
 
-const MyDatePicker = ({ myClassName, formClassName, handleOnChange, format }) => {
+const MyDatePicker = ({ myClassName, formClassName, handleOnChange, format, name = '', value = '' }) => {
   console.log("my data picker");
   const [startDate, setStartDate] = useState('mm/dd/yyyy')
   const [selectedValue, setSelectedValue] = useState('')
-  const years = range(1990, getYear(new Date()) + 1, 1)
+  const years = range(1960, getYear(new Date()) + 1, 1)
   const months = [
     'January',
     'February',
@@ -33,6 +33,8 @@ const MyDatePicker = ({ myClassName, formClassName, handleOnChange, format }) =>
     'December'
   ]
 
+  // const valDate = useMemo(() => value, [value])
+
 
 
   const removeHanndler = () => {
@@ -47,6 +49,10 @@ const MyDatePicker = ({ myClassName, formClassName, handleOnChange, format }) =>
     setSelectedValue(date)
   }
 
+  const isNumeric = (value) => {
+    return /^-?\d+$/.test(value);
+  }
+
   const isValidDate = val => new Date(val).toString() !== 'Invalid Date'
   const focousOut = value => {
     if (!isValidDate(value)) {
@@ -57,11 +63,19 @@ const MyDatePicker = ({ myClassName, formClassName, handleOnChange, format }) =>
 
   useEffect(() => {
     if (!isValidDate(selectedValue)) {
-      handleOnChange('')
+      handleOnChange(name, '')
     } else {
-      handleOnChange(moment(selectedValue).format(`${format}`))
+      handleOnChange(name, moment(selectedValue).format(`${format}`))
     }
   }, [selectedValue])
+
+  useEffect(() => {
+    if (value === '') {
+      removeHanndler()
+    } else {
+      setStartDate(value)
+    }
+  }, [value])
 
   /* eslint-disable react/display-name */
   const CustomInput = forwardRef(({ value, onClick }, ref) => (
@@ -93,7 +107,7 @@ const MyDatePicker = ({ myClassName, formClassName, handleOnChange, format }) =>
 
   const MyContainer = ({ className, children }) => {
     return (
-      <div onClick={e =>e.stopPropagation()} className="tw-cursor-default">
+      <div onClick={e => e.stopPropagation()} className="tw-cursor-default">
         <div className={className}>
           <div>{children}</div>
         </div>
@@ -111,15 +125,10 @@ const MyDatePicker = ({ myClassName, formClassName, handleOnChange, format }) =>
     nextMonthButtonDisabled
   }) => {
     return (
-      <div className=' tw-text-base tw-font-semibold tw-flex tw-items-center tw-justify-between tw-px-3'>
-        <button
-          onClick={decreaseMonth}
-          disabled={prevMonthButtonDisabled}
-        >
-          <MdKeyboardArrowLeft />
-        </button>
+      <div className=' tw-text-base tw-font-semibold tw-flex tw-items-center tw-justify-evenly tw-px-3'>
+
         {/* <span>{moment(date).format('MMMM YYYY')}</span> */}
-        <select
+        {/* <select
           className='tw-text-sm tw-text-gray-700 tw-bg-white'
           value={getYear(date)}
           onChange={(e) => {
@@ -135,10 +144,10 @@ const MyDatePicker = ({ myClassName, formClassName, handleOnChange, format }) =>
               {option}
             </option>
           ))}
-        </select>
+        </select> */}
 
         <select
-          className='tw-text-sm tw-text-gray-700 tw-bg-white'
+          className='tw-form-control tw-block tw-px-2 tw-py-1 tw-text-sm tw-font-normal  tw-text-gray-700 tw-bg-white tw-bg-clip-padding tw-border tw-border-solid tw-border-gray-300 tw-rounded tw-transition tw-ease-in-out tw-m-0 focus:tw-text-gray-700 focus:tw-bg-white focus:tw-border-sky-600 focus:tw-outline-none'
           value={months[getMonth(date)]}
           onChange={(e) => {
             changeMonth(months.indexOf(e.target.value))
@@ -155,12 +164,20 @@ const MyDatePicker = ({ myClassName, formClassName, handleOnChange, format }) =>
           ))}
         </select>
 
-        <button
-          onClick={increaseMonth}
-          disabled={nextMonthButtonDisabled}
-        >
-          <MdKeyboardArrowRight />
-        </button>
+        
+        <input
+          type="text"
+          className='tw-form-control tw-block tw-px-2 tw-py-1 tw-text-sm tw-font-normal  tw-text-gray-700 tw-bg-white tw-bg-clip-padding tw-border tw-border-solid tw-border-gray-300 tw-rounded tw-transition tw-ease-in-out tw-m-0 focus:tw-text-gray-700 focus:tw-bg-white focus:tw-border-sky-600 focus:tw-outline-none tw-w-14'
+          value={getYear(date)}
+          onChange={(e) => {
+            if (isNumeric(e.target.value)) {
+              changeYear(e.target.value)
+            }else {
+              changeYear(0)
+            }
+          }}
+        />
+        
       </div>
     )
   }

@@ -2,8 +2,8 @@ import React from 'react'
 
 import { MdFirstPage, MdLastPage } from 'react-icons/md'
 
-const PageButtonRenderer = ({ page, active, disable, title, onPageChange }) => {
-  console.log('pagebutton')
+const PageButtonRenderer = ({ pageProps, onPageChange }) => {
+  const { page, active, disable, title } = pageProps
   const handleClick = e => {
     e.preventDefault()
     onPageChange(page)
@@ -14,11 +14,11 @@ const PageButtonRenderer = ({ page, active, disable, title, onPageChange }) => {
     activeStyle.color = 'white'
   }
 
-  if (typeof page === 'string') {
-    // activeStyle.backgroundColor = 'white';
-    // activeStyle.color = 'black';
-    console.log(page === '<<')
-  }
+  // if (typeof page === 'string') {
+  //   // activeStyle.backgroundColor = 'white';
+  //   // activeStyle.color = 'black';
+  //   console.log(page === '<<')
+  // }
 
   if (page !== 'Next' && page !== '>' && page !== 'Back' && page !== '<') {
     if (page === '>>') {

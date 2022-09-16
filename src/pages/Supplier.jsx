@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react'
+import React, { useState, memo, useLayoutEffect, useEffect } from 'react'
 // import BootstrapTable from 'react-bootstrap-table-next'
 import {
     textFilter,
@@ -17,6 +17,10 @@ import ModalEdit from '../components/supplier/ModalEdit'
 import ModalDetail from '../components/supplier/ModalDetail'
 import ModalRemove from '../components/supplier/ModalRemove'
 import MyTable from '../components/tabel/MyTable'
+import { useDispatch, useSelector } from 'react-redux'
+import { getSupplier, setSuccess } from '../store/slices/supplierSlice'
+import moment from 'moment'
+
 const classNameFilterForm =
     'tw-form-control tw-flex tw-py-1 tw-px-2 tw-text-xs tw-font-normal tw-text-gray-700 tw-bg-white tw-bg-clip-padding tw-border tw-border-solid tw-border-gray-300 tw-rounded tw-transition tw-ease-in-out tw-m-0  focus:tw-text-gray-700 focus:tw-bg-white focus:tw-border-blue-600 focus:tw-outline-none'
 
@@ -24,68 +28,45 @@ const Supplier = () => {
     console.log('====================================')
     console.log('page supplier')
     console.log('====================================')
+    const [val, setVal] = useState({
+        createID: ''
+    })
 
-    const data = [
-        {
-            id: 'e8f796c3-0f1a-4fd0-9a85-1baa3a10e8ee',
-            nama: 'Schmitt, Johnston and Kris',
-            alamat: '0129 Monument Terrace',
-            jenis: 'Sitework & Site Utilities',
-            pph: '$3.13',
-            ppn: '$3.87',
-            npwp: '5602214053275481',
-            created_at: '6/7/2022'
-        },
-        {
-            id: '38278e61-67ef-4e3e-b89c-0a535dfa014c',
-            nama: 'Schumm, Stroman and Bartell',
-            alamat: '4 Elmside Road',
-            jenis: 'Curb & Gutter',
-            pph: '$3.44',
-            ppn: '$1.79',
-            npwp: '3587808347630437',
-            created_at: '6/2/2022'
-        },
-        {
-            id: '74eb5623-aa88-4ca4-9720-46916d867bfa',
-            nama: 'Braun-Stehr',
-            alamat: '6 Independence Parkway',
-            jenis: 'Structural & Misc Steel Erection',
-            pph: '$0.94',
-            ppn: '$0.84',
-            npwp: '3563913262376376',
-            created_at: '3/18/2022'
-        },
-        {
-            id: 'e3aeee1e-937d-43e7-8978-6dad88e9c81b',
-            nama: 'Wehner, Padberg and Keeling',
-            alamat: '3499 Scoville Plaza',
-            jenis: 'Plumbing & Medical Gas',
-            pph: '$7.00',
-            ppn: '$5.87',
-            npwp: '5100139754155632',
-            created_at: '7/31/2022'
-        }
-    ]
+    const [token, setToken] = useState(sessionStorage.getItem('token'));
+    const dispatch = useDispatch()
+    const { data, limit, totalData, currentPage, isLoading } = useSelector(
+        state => state.supplierSlice.dataSupplier
+    )
 
     const [isHiden, setIsHiden] = useState({
-        alamat: false,
-        jenis: false,
-        pph: true,
-        ppn: true,
         npwp: true,
-        created_at: false
+        alamat: false,
+        kota: true,
+        phone: false,
+        email: true,
+        bank_akun: true,
+        akun_name: true,
+        akun_number: true,
+        contact_person_sup: false,
+        ppn: true,
+        pph: true,
     })
 
     const [valAksi, setValAksi] = useState({
         id: '',
-        nama: '',
+        suplier_type: '',
+        id_suplier: '',
+        sup_name: '',
         alamat: '',
-        jenis: '',
-        pph: '',
+        kota: '',
+        phone: '',
+        email: '',
+        bank_akun: '',
+        akun_name: '',
+        akun_number: '',
+        contact_person_sup: '',
         ppn: '',
-        npwp: '',
-        created_at: ''
+        pph: ''
     })
 
     const defaultToggleColumn = (toggleVal, columnField) => {
@@ -93,6 +74,15 @@ const Supplier = () => {
             ...isHiden,
             [columnField]: !toggleVal
         }))
+    }
+
+    const conditionHidden = column => {
+        return (
+            column.text !== '#' &&
+            column.text !== 'Type' &&
+            column.text !== 'Name Supplier' &&
+            column.text !== 'Aksi'
+        )
     }
 
     const showModalHandler = (type, row = null) => {
@@ -104,13 +94,19 @@ const Supplier = () => {
             setValAksi(valAksi => ({
                 ...valAksi,
                 id: row.id,
-                nama: row.nama,
+                suplier_type: row.suplier_type,
+                id_suplier: row.id_suplier,
+                sup_name: row.sup_name,
                 alamat: row.alamat,
-                jenis: row.jenis,
-                pph: row.pph,
+                kota: row.kota,
+                phone: row.phone,
+                email: row.email,
+                bank_akun: row.bank_akun,
+                akun_name: row.akun_name,
+                akun_number: row.akun_number,
+                contact_person_sup: row.contact_person_sup,
                 ppn: row.ppn,
-                npwp: row.npwp,
-                created_at: row.created_at
+                pph: row.pph,
             }))
         }
 
@@ -132,115 +128,128 @@ const Supplier = () => {
                 break
         }
         if (elModal !== null) {
-            const modal = new window.Modal(elModal)
+            const nowDate = new Date()
+            setVal((val) => ({
+                ...val,
+                createID: `SL${moment(nowDate).format('MDDYYYYHHmmss')}`
+            }))
+            dispatch(setSuccess(false))
+            const modal = window.Modal.getOrCreateInstance(elModal)
             modal.show()
         }
     }
 
-    const selectOptions = [{ value: 'Electrical', label: 'Electrical' }]
+    const selectOptions = [
+        { value: 'Material Supplier', label: 'Material Supplier' },
+        { value: 'Service Vendor', label: 'Service Vendor' }
+    ]
 
     const columns = [
         {
             dataField: 'no',
             text: '#',
-            sort: false,
             headerStyle: () => ({ width: '50px' }),
             formatter: (cell, row, rowIndex, formatExtraData) => {
-                const currentPage = 1
+                const current = currentPage
                 const rowNumber = (currentPage - 1) * 10 + (rowIndex + 1)
                 return rowNumber
             }
         },
         {
-            dataField: 'nama',
-            text: 'Nama',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
+            dataField: 'suplier_type',
+            text: 'Type',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            dataField: 'sup_name',
+            text: 'Name Supplier',
             headerStyle: () => ({ width: '180px' })
         },
         {
             hidden: isHiden.alamat,
             dataField: 'alamat',
-            text: 'Alamat',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
+            text: 'Address',
+            headerStyle: () => ({ width: '250px' })
+        },
+        {
+            hidden: isHiden.kota,
+            dataField: 'kota',
+            text: 'City',
             headerStyle: () => ({ width: '180px' })
         },
         {
-            hidden: isHiden.jenis,
-            dataField: 'jenis',
-            text: 'Jenis',
-            sort: true,
-            filter: selectFilter({
-                placeholder: 'Pilih',
-                options: selectOptions,
-                className: classNameFilterForm
-            }),
+            hidden: isHiden.phone,
+            dataField: 'phone',
+            text: 'Office Phone',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.email,
+            dataField: 'email',
+            text: 'Office Email',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.contact_person_sup,
+            dataField: 'contact_person_sup',
+            text: 'Contact Person',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.bank_akun,
+            dataField: 'bank_akun',
+            text: 'Bank Name',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.akun_name,
+            dataField: 'akun_name',
+            text: 'Account Name',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.akun_number,
+            dataField: 'akun_number',
+            text: 'Account Number',
+            headerStyle: () => ({ width: '180px' })
+        },
+        {
+            hidden: isHiden.ppn,
+            dataField: 'ppn',
+            text: 'PPN',
             headerStyle: () => ({ width: '180px' })
         },
         {
             hidden: isHiden.pph,
             dataField: 'pph',
             text: 'PPh',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
-            headerStyle: () => ({ width: '100px' })
-        },
-        {
-            hidden: isHiden.ppn,
-            dataField: 'ppn',
-            text: 'PPN',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
-            headerStyle: () => ({ width: '100px' })
-        },
-        {
-            hidden: isHiden.npwp,
-            dataField: 'npwp',
-            text: 'NPWP',
-            sort: true,
-            filter: textFilter({
-                placeholder: ' ',
-                className: classNameFilterForm
-            }),
             headerStyle: () => ({ width: '180px' })
         },
-        {
-            hidden: isHiden.created_at,
-            dataField: 'created_at',
-            text: 'Tanggal',
-            sort: true,
-            filter: customFilter({
-                type: FILTER_TYPES.TEXT
-            }),
-            filterRenderer: (onFilter, column) => {
-                const handleOnChange = date => {
-                    onFilter(date)
-                }
-                return (
-                    <div className=''>
-                        <MyDatePicker
-                            formClassName={`form-control tw-w-full tw-flex tw-py-1 tw-px-2 tw-text-xs tw-font-normal tw-text-gray-700 tw-bg-white tw-bg-clip-padding tw-border tw-border-solid tw-border-gray-300 tw-rounded tw-transition tw-ease-in-out tw-m-0  focus:tw-text-gray-700 focus:tw-bg-white focus:tw-border-blue-600 focus:tw-outline-none`}
-                            handleOnChange={handleOnChange}
-                            format={`M/DD/YYYY`}
-                        />
-                    </div>
-                )
-            },
-            headerStyle: () => ({ width: '150px' })
-        },
+       
+        // {
+        //     hidden: isHiden.created_at,
+        //     dataField: 'created_at',
+        //     text: 'Date',
+        //     sort: true,
+        //     filter: customFilter({
+        //         type: FILTER_TYPES.TEXT
+        //     }),
+        //     filterRenderer: (onFilter, column) => {
+        //         const handleOnChange = date => {
+        //             onFilter(date)
+        //         }
+        //         return (
+        //             <div className=''>
+        //                 <MyDatePicker
+        //                     formClassName={`form-control tw-w-full tw-flex tw-py-1 tw-px-2 tw-text-xs tw-font-normal tw-text-gray-700 tw-bg-white tw-bg-clip-padding tw-border tw-border-solid tw-border-gray-300 tw-rounded tw-transition tw-ease-in-out tw-m-0  focus:tw-text-gray-700 focus:tw-bg-white focus:tw-border-blue-600 focus:tw-outline-none`}
+        //                     handleOnChange={handleOnChange}
+        //                     format={`M/DD/YYYY`}
+        //                 />
+        //             </div>
+        //         )
+        //     },
+        //     headerStyle: () => ({ width: '150px' })
+        // },
         {
             dataField: 'aksi',
             text: 'Aksi',
@@ -281,21 +290,30 @@ const Supplier = () => {
     //     showExpandColumn: false
     // }
 
+    const onPageChange = (page) => {
+        dispatch(getSupplier({ page: page, perPage: '10', token: token }))
+    }
+
     const options = {
-        // sizePerPage: 3,
         custom: true,
-        totalSize: data.length,
-        // firstPageText: 'First',
-        // prePageText: 'Back',
-        // nextPageText: 'Next',
-        // lastPageText: 'Last',
-        // nextPageTitle: 'First page',
-        // prePageTitle: 'Pre page',
-        // firstPageTitle: 'Next page',
-        // lastPageTitle: 'Last page',
-        pageButtonRenderer: PageButtonRenderer,
+        sizePerPage: limit,
+        page: currentPage,
+        totalSize: totalData,
+        pageButtonRenderer: (pageProps) => {
+            return <PageButtonRenderer key={pageProps.page} pageProps={pageProps} onPageChange={onPageChange} />
+        },
         sizePerPageRenderer: SizePerPageRenderer
     }
+
+    useLayoutEffect(() => {
+        dispatch(getSupplier({ token: token }))
+    }, [])
+
+    useEffect(() => {
+        return () => {
+            dispatch(setSuccess(false))
+        }
+    }, [])
 
     return (
         <>
@@ -306,16 +324,18 @@ const Supplier = () => {
                     options={options}
                     defaultToggleColumn={defaultToggleColumn}
                     showModalHandler={showModalHandler}
+                    conditionHidden={conditionHidden}
                     expandRow={{}}
+                    loading={isLoading}
+                    remote={true}
                 />
             </div>
-            <ModalTambah />
-            <ModalEdit valAksi={valAksi} />
-            <ModalDetail />
-            <ModalRemove />
+            <ModalTambah val={val} token={token} />
+            <ModalEdit valAksi={valAksi} token={token} />
+            <ModalDetail valAksi={valAksi} token={token} />
+            <ModalRemove valId={valAksi.id} token={token} />
         </>
     )
 }
-
 
 export default memo(Supplier)

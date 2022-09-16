@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
-const ModalDetail = () => {
+const ModalDetail = ({valAksi}) => {
   return (
     <React.Fragment>
       <div
@@ -30,110 +30,47 @@ const ModalDetail = () => {
             </div>
             <div className='modal-body tw-relative tw-py-2 tw-px-6'>
               {/* //content */}
-              {/* <form>
-                                <div className='form-group mb-2'>
-                                    <label
-                                        htmlFor='exampleInputEmail2'
-                                        className='form-label text-sm font-bold inline-block mb-2 text-gray-700'
-                                    >
-                                        Nama
-                                    </label>
-                                    <input
-                                        type='text'
-                                        className='form-control block w-full px-3 py-2 text-sm font-normal  text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none'
-                                        id='nama'
-                                        defaultValue={valAksi.nama}
-                                        placeholder='Nama'
-                                    />
-                                </div>
-                                <div className='form-group mb-2'>
-                                    <label
-                                        htmlFor='exampleInputEmail2'
-                                        className='form-label text-sm font-bold inline-block mb-2 text-gray-700'
-                                    >
-                                        Alamat
-                                    </label>
-                                    <input
-                                        type='text'
-                                        className='form-control block w-full px-3 py-2 text-sm font-normal  text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none'
-                                        id='alamat'
-                                        defaultValue={valAksi.alamat}
-                                        placeholder='Alamat'
-                                    />
-                                </div>
-                                <div className='form-group mb-2'>
-                                    <label
-                                        htmlFor='exampleInputEmail2'
-                                        className='form-label text-sm font-bold inline-block mb-2 text-gray-700'
-                                    >
-                                        Jenis
-                                    </label>
-                                    <input
-                                        type='text'
-                                        className='form-control block w-full px-3 py-2 text-sm font-normal  text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none'
-                                        id='jenis'
-                                        defaultValue={valAksi.jenis}
-                                        placeholder='Jenis'
-                                    />
-                                </div>
-                                <div className='form-group mb-2'>
-                                    <label
-                                        htmlFor='exampleInputEmail2'
-                                        className='form-label text-sm font-bold inline-block mb-2 text-gray-700'
-                                    >
-                                        PPh
-                                    </label>
-                                    <input
-                                        type='text'
-                                        className='form-control block w-full px-3 py-2 text-sm font-normal  text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none'
-                                        id='pph'
-                                        defaultValue={valAksi.pph}
-                                        placeholder='PPh'
-                                    />
-                                </div>
-                                <div className='form-group mb-2'>
-                                    <label
-                                        htmlFor='exampleInputEmail2'
-                                        className='form-label text-sm font-bold inline-block mb-2 text-gray-700'
-                                    >
-                                        PPN
-                                    </label>
-                                    <input
-                                        type='text'
-                                        className='form-control block w-full px-3 py-2 text-sm font-normal  text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none'
-                                        id='ppn'
-                                        defaultValue={valAksi.ppn}
-                                        placeholder='PPN'
-                                    />
-                                </div>
-                                <div className='form-group mb-2'>
-                                    <label
-                                        htmlFor='exampleInputEmail2'
-                                        className='form-label text-sm font-bold inline-block mb-2 text-gray-700'
-                                    >
-                                        NPWP
-                                    </label>
-                                    <input
-                                        type='text'
-                                        className='form-control block w-full px-3 py-2 text-sm font-normal  text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none'
-                                        id='npwp'
-                                        defaultValue={valAksi.npwp}
-                                        placeholder='NPWP'
-                                    />
-                                </div>
-                            </form> */}
+              <table className="tw-min-w-full">
+                <tbody>
+                  <tr className="tw-border-b">
+                    <td className="tw-text-sm tw-text-gray-900 tw-font-bold tw-px-6 tw-py-2 tw-whitespace-nowrap tw-w-1/3">
+                      Job No
+                    </td>
+                    <td className="tw-text-sm tw-text-gray-900 tw-font-light tw-px-6 tw-py-2 tw-whitespace-nowrap tw-w-2/3">
+                      {valAksi.jobNo}
+                    </td>
+                  </tr>
+                  <tr className="tw-border-b">
+                    <td className="tw-text-sm tw-text-gray-900 tw-font-bold tw-px-6 tw-py-2 tw-whitespace-nowrap tw-w-1/3">
+                      Customer
+                    </td>
+                    <td className="tw-text-sm tw-text-gray-900 tw-font-light tw-px-6 tw-py-2 tw-whitespace-nowrap tw-w-2/3">
+                      {valAksi.customer}
+                    </td>
+                  </tr>
+                  <tr className="tw-border-b">
+                    <td className="tw-text-sm tw-text-gray-900 tw-font-bold tw-px-6 tw-py-2 tw-whitespace-nowrap tw-w-1/3">
+                      Subject
+                    </td>
+                    <td className="tw-text-sm tw-text-gray-900 tw-font-light tw-px-6 tw-py-2 tw-whitespace-nowrap tw-w-2/3">
+                      {valAksi.subject}
+                    </td>
+                  </tr>
+                  
+                </tbody>
+              </table>
             </div>
             <div className='modal-footer tw-flex tw-flex-shrink-0 tw-flex-wrap tw-items-center tw-justify-end tw-py-2 tw-px-6 tw-border-t tw-border-gray-200 tw-rounded-b-md'>
               <button
                 type='button'
-                className='tw-inline-block tw-px-6 tw-py-2 tw-bg-red-500 tw-text-white tw-font-bold tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
+                className='hover:tw-bg-red-600 tw-inline-block tw-px-6 tw-py-2 tw-bg-red-500 tw-text-white tw-font-bold tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
                 data-bs-dismiss='modal'
               >
                 Close
               </button>
               <button
                 type='button'
-                className='tw-inline-block tw-px-6 tw-py-2 tw-bg-red-500 tw-text-white tw-font-bold tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
+                className='hover:tw-bg-red-600 tw-inline-block tw-px-6 tw-py-2 tw-bg-red-500 tw-text-white tw-font-bold tw-text-xs tw-rounded tw-duration-150 tw-ease-in-out'
               >
                 Understood
               </button>

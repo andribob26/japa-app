@@ -1,22 +1,23 @@
 import React, { useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
     MdArrowDropDown,
     MdOutlineChevronLeft,
     MdChevronRight
 } from 'react-icons/md'
 
-const Header = ({ isOpenNav, showNavHandler }) => {
+const Header = ({ isOpenNav, showNavHandler, logOut }) => {
+    const navigate = useNavigate()
     const location = useLocation()
-    const headerTitle = location.pathname.split('/')
+    // const headerTitle = location.pathname.split('/')
     const [headerBar, setHeaderBar] = useState({
         title:
-            headerTitle[1] !== ''
-                ? headerTitle[1].charAt(0).toUpperCase() + headerTitle[1].slice(1)
+            location.state.title !== ''
+                ? location.state.title
                 : 'Dashboard',
         subtitle:
-            headerTitle[2] !== undefined
-                ? headerTitle[2].charAt(0).toUpperCase() + headerTitle[2].slice(1)
+            location.state.subtitle !== ''
+                ? location.state.subtitle
                 : ''
     })
 
@@ -24,20 +25,21 @@ const Header = ({ isOpenNav, showNavHandler }) => {
         setHeaderBar(headerBar => ({
             ...headerBar,
             title:
-                headerTitle[1] !== ''
-                    ? headerTitle[1].charAt(0).toUpperCase() + headerTitle[1].slice(1)
+                location.state.title !== ''
+                    ? location.state.title
                     : 'Dashboard',
             subtitle:
-                headerTitle[2] !== undefined
-                    ? headerTitle[2].charAt(0).toUpperCase() + headerTitle[2].slice(1)
+                location.state.subtitle !== undefined
+                    ? location.state.subtitle
                     : ''
         }))
     }, [location])
 
+
     return (
         <>
             <nav className='tw-bg-white tw-border-b tw-z-20 tw-fixed tw-left-0 tw-right-0 tw-flex tw-items-center tw-transition-all tw-duration-500 tw-ease-in-out'>
-                <div className='tw-w-full md:tw-w-60 tw-flex md:tw-flex-none'>
+                <div className='tw-w-full md:tw-w-64 tw-flex md:tw-flex-none'>
                     <button
                         onClick={showNavHandler}
                         type='button'
@@ -135,7 +137,7 @@ const Header = ({ isOpenNav, showNavHandler }) => {
                                 </span>
                             </li>
                             <li className="hover:tw-bg-gray-200">
-                                <span className='dropdown-item tw-cursor-pointer active:tw-bg-gray-200 active:tw-text-gray-700 tw-text-sm tw-py-2 tw-px-4 tw-font-normal tw-block tw-w-full tw-whitespace-nowrap tw-bg-transparent tw-text-gray-700'>
+                                <span onClick={logOut} className='dropdown-item tw-cursor-pointer active:tw-bg-gray-200 active:tw-text-gray-700 tw-text-sm tw-py-2 tw-px-4 tw-font-normal tw-block tw-w-full tw-whitespace-nowrap tw-bg-transparent tw-text-gray-700'>
                                     Log out
                                 </span>
                             </li>
